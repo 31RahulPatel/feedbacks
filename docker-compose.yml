@@ -1,18 +1,33 @@
 version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=aws-ug-feedback
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
   backend:
     build: ./backend
     ports:
       - "5001:5001"
     environment:
-      - MONGODB_URI=${MONGODB_URI}
-      - JWT_SECRET=${JWT_SECRET}
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/aws-ug-feedback?authSource=admin
+      - JWT_SECRET=mySecretKey123
+      - ADMIN_EMAIL=admin@awsugvadodara.com
+      - ADMIN_PASSWORD=Admin123
       - PORT=5001
     volumes:
       - ./backend/uploads:/app/uploads
+    depends_on:
+      - mongodb
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -22,3 +37,7 @@ services:
       - REACT_APP_API_URL=http://localhost:5001/api
     depends_on:
       - backend
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
